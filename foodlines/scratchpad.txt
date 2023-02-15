@@ -1,0 +1,28 @@
+
+init 
+    i i 
+    i i i 
+    i i i i i 
+---
+M = 4 (four new people arrive)
+gen1
+    i i i 
+    i i i 
+    i i i i i 
+M = 3
+gen2
+    i i i i 
+    i i i 
+    i i i i i 
+M = 2 
+gen3 
+    i i i i 
+    i i i i 
+    i i i i i 
+M = 1 
+gen4 
+    i i i i i 
+    i i i i 
+    i i i i i
+
+
