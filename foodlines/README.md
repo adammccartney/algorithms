@@ -29,3 +29,13 @@ The second line contains N positive integers, a_1 , a_2 , … , a_N .
 ## Output specificaiton 
 
 Print M lines, the i th of which being the length of the line that the i th person joined.
+
+
+## Sample Input
+5 3
+2 2 3 3 3
+
+## Sample Output
+2
+2
+3
