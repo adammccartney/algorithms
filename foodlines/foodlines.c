@@ -86,16 +86,6 @@ struct TwoLines initTwoLines(struct TwoLines lines)
 	return lines;
 }
 
-uint8_t getshortest(uint32_t len, long int lines[],
-		    uint32_t shortest_i) {
-	int i;
-	int min = lines[0];
-	for (i = 0; i < len; i++) {
-		if (lines[i] < min)
-			shortest_i = i;
-	}
-	return shortest_i;
-}
 
 /* Read a line and push at most n (expected) numbers onto the stack */
 void pushNums(char* buf, int expect)
@@ -137,9 +127,29 @@ void pushNums(char* buf, int expect)
 		count++;
 		push(val); /* Push the last value onto the stack. */
 	} while ((!success) && (count < expect));
-	
 }
 
+int getshortesti(long int lines[], int len) {
+	int i;
+	int shortest = 0;
+	for (i = 0; i < len; i++) {
+		if (lines[i] < lines[shortest])
+			shortest = i;
+	}
+	return shortest;
+}
+
+/* Array containing lines, n len of array, m num people joining */
+void solve(long int lines[], int n, int m)
+{
+	int i, shortest;
+	for (i = 0; i < m; i++)
+	{
+		shortest = getshortesti(lines, n);
+		printf("%ld\n",lines[shortest]);
+		lines[shortest]++;
+	}
+}
 
 int main(int argc, char* argv[])
 {
@@ -156,16 +166,9 @@ int main(int argc, char* argv[])
 	pushNums(lines.second, flinfo.numlines);
 	struct Foodlines flines;
 	flines = initFoodlines(flines, flinfo.numlines);
-	
-	int len_ljoined = 0;
-        int shortest_i = 0; // init with index 0
-        do {
-                shortest_i = getshortest(flinfo.numlines, flines.lns, shortest_i);
-                len_ljoined = flines.lns[shortest_i];
-                printf("%d\n", len_ljoined);
-                flines.lns[shortest_i] += 1;
-        } while (--flinfo.npersons > 0);
-
+	if (flines.len != flinfo.numlines)
+		printf("Error in parsing numlines\n");
+	solve(flines.lns, flines.len, flinfo.npersons);
 	freeFoodlines(flines);
 	return 0;
 }
