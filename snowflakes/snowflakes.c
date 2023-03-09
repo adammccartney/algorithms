@@ -17,14 +17,15 @@ int top = -1;
 #define push(s) stack[++top]=s;
 
 struct Snowflake {
-	unsigned int arms[N_ARMS];
+	int arms[N_ARMS];
 };
 
-void initSnowflake(struct Snowflake s)
+struct Snowflake initSnowflake(struct Snowflake s)
 {
 	for (int i = N_ARMS; i > 0; i--) {
 		s.arms[i] = pop;
 	}
+	return s;
 }
 
 /* Snowflake list */
@@ -86,18 +87,56 @@ void pushNums(char* buf, int expect)
 	} while ((!success) && (count < expect));
 }
 
-void identify_identical(int values[], int n)
+/* Iterate through the first array comparing the values to the second */
+int identical_right(int snow1[], int snow2[], int start)
+{
+	int offset;
+	for(offset = 0; offset < 6; offset++) {
+		if (snow1[offset] != snow2[(start + offset) % 6])
+			return 0;
+	}
+	return 1;
+}
+
+int identical_left(int snow1[], int snow2[], int start)
+{
+	int offset, snow2_index;
+	for (offset=0; offset<6; offset++) {
+		snow2_index = start - offset;
+		if (snow2_index < 0)
+			snow2_index = snow2_index + 6;
+		if (snow1[offset] != snow2[snow2_index])
+			return 0;
+	}
+	return 1;
+}
+
+int are_identical(int snow1[], int snow2[]) 
+{
+	int start;
+	for (start = 0; start < 6; start++) {
+		if (identical_right(snow1, snow2, start))
+			return 1;
+		if (identical_left(snow1, snow2, start))
+			return 1;
+	}
+	return 0;
+}
+
+
+
+void identify_identical(struct Snowflake snowflakes[], int n)
 {
 	int i, j;
 	for(i = 0; i < n; i++) {
 		for(j = i+1; j < n; j++) {
-			if (values[i] == values[j]) {
-				printf("Twin integers found.\n");
+			if (are_identical(snowflakes[i].arms, snowflakes[j].arms)) {
+				printf("Twin snowflakes found.\n");
 				return;
 			}
 		}
 	}
-	printf("No two integers are alike.\n");
+	printf("No two snowflakes are alike.\n");
 }
 
 
@@ -115,47 +154,41 @@ char* getLine(char* line)
 
 int main(int argc, char* argv[])
 {
-	int a[5] = {1, 2, 3, 1, 5};
-	identify_identical(a, 5);
+	int n, remaining;
+
+	char* flbuf = malloc(sizeof(char) * MAXLEN);
+	flbuf = getLine(flbuf); /* got 1 num on stack */
+	pushNums(flbuf, 1);
+	remaining = pop;
+	if (top != -1) {
+		printf("Error: expected an empty stack!\n");
+		exit(-1);
+	}
+	/* allocate memory for remaining */
+	struct Snowflake snowflakes[remaining];
+	n = remaining;
+	do 
+	{
+		char* linebuf = malloc(sizeof(char) * MAXLEN);
+		linebuf = getLine(linebuf);
+		/* expect to read 6 ints from line */
+		pushNums(linebuf, N_ARMS);
+		/* initialize snowflake from nums on stack */
+		struct Snowflake sf;
+		sf  = initSnowflake(sf); /* pops numbers off the stack */
+		if (top != -1) {
+			printf("Error: expected an empty stack!\n");
+			printf("Failed to push %s\n", flbuf);
+			exit(-1);
+		}
+		/* store this snowflake in array */
+		snowflakes[remaining] = sf;
+	} while (--remaining > 0);
+	identify_identical(snowflakes, n);
+
+	/* Outer loop generates a permutation matrix */
+
+	/* Inner loop compares rows to control snowflake */
+
 	return 0;
 }
-
-//int main(int argc, char* argv[])
-//{
-//	/* Get first line containing count of remaining lines. */
-//	char* flbuf = malloc(sizeof(char) * MAXLEN);
-//	flbuf = getLine(flbuf); /* got 1 num on stack */
-//	pushNums(flbuf, 1);
-//	int remaining = pop;
-//	if (top != -1) {
-//		printf("Error: expected an empty stack!\n");
-//		exit(-1);
-//	}
-//	/* allocate memory for remaining */
-//	struct Snowflake sflks[remaining];
-//	do 
-//	{
-//		char* linebuf = malloc(sizeof(char) * MAXLEN);
-//		linebuf = getLine(linebuf);
-//		/* expect to read 6 ints from line */
-//		pushNums(linebuf, N_ARMS);
-//		/* need to initialize the snowflakes here */
-//
-//		/* initialize snowflake from line */
-//		struct Snowflake sf = { .arms = {0, 0, 0, 0, 0, 0} };
-//		initSnowflake(sf); /* pops numbers off the stack */
-//		if (top != -1) {
-//			printf("Error: expected an empty stack!\n");
-//			printf("Failed to push %s\n", flbuf);
-//			exit(-1);
-//		}
-//		/* store this snowflake in array */
-//		sflks[remaining] = sf;
-//	} while (remaining > 0);
-//
-//	/* Outer loop generates a permutation matrix */
-//
-//	/* Inner loop compares rows to control snowflake */
-//
-//	return 0;
-//}
