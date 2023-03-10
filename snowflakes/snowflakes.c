@@ -9,40 +9,32 @@
 #define MAX_SPACES 5
 #define D_UINT32_MAX 10 /* digits in UINT32 MAX */
 #define MAXLEN ((D_UINT32_MAX * 6) + MAX_SPACES) /* Max line length */
-#define MAXNUMS 100000 
+#define SIZE 100000 
 
-long int stack[MAXNUMS];
+long int stack[SIZE];
 int top = -1;
 #define pop stack[top--];
 #define push(s) stack[++top]=s;
 
-struct Snowflake {
-	int arms[N_ARMS];
+struct SnowflakeNode {
+	int snowflake[N_ARMS];
+	struct SnowflakeNode* next;
 };
 
-struct Snowflake initSnowflake(struct Snowflake s)
+struct SnowflakeNode* initSnowflakeNode(struct SnowflakeNode* s)
 {
+	/* Watch out for zero indexed off by one errors */
+	/* N_ARMS is the total length of array (6) indexes are 0-5 */
 	for (int i = N_ARMS; i > 0; i--) {
-		s.arms[i] = pop;
+		s->snowflake[i-1] = pop;
 	}
 	return s;
 }
 
-/* Snowflake list */
-struct Node {
-	struct Snowflake sf;
-	struct Node* next;
-};
-
-void initNode(struct Node node, struct Snowflake sf)
+int code(int snowflake[]) 
 {
-	node.sf = sf;
-	node.next = NULL;
-}
-
-void appendNode(struct Node node, struct Node* new)
-{
-	node.next = new;
+	return (snowflake[0] + snowflake[1] + snowflake[2] + 
+		snowflake[3] + snowflake[4] + snowflake[5]) % SIZE; 
 }
 
 /* Read a line and push at most n (expected) numbers onto the stack */
@@ -125,15 +117,22 @@ int are_identical(int snow1[], int snow2[])
 
 
 
-void identify_identical(struct Snowflake snowflakes[], int n)
+void identify_identical(struct SnowflakeNode* snowflakes[])
 {
-	int i, j;
-	for(i = 0; i < n; i++) {
-		for(j = i+1; j < n; j++) {
-			if (are_identical(snowflakes[i].arms, snowflakes[j].arms)) {
-				printf("Twin snowflakes found.\n");
-				return;
+	struct SnowflakeNode *node1, *node2;
+	int i;
+	for(i = 0; i < SIZE; i++) {
+		node1 = snowflakes[i];
+		while (node1 != NULL) {
+			node2 = node1->next;
+			while (node2 != NULL) {
+				if (are_identical(node1->snowflake, node2->snowflake)) {
+					printf("Twin snowflakes found.\n");
+					return;
+				}
+				node2 = node2->next;
 			}
+			node1 = node1->next;
 		}
 	}
 	printf("No two snowflakes are alike.\n");
@@ -154,41 +153,41 @@ char* getLine(char* line)
 
 int main(int argc, char* argv[])
 {
-	int n, remaining;
+	static struct SnowflakeNode* snowflakes[SIZE] = {NULL};
+	struct SnowflakeNode* snow;
+	int n, i, snowflake_code;
 
+	/* Get n, the number of snowflakes to eat */
 	char* flbuf = malloc(sizeof(char) * MAXLEN);
 	flbuf = getLine(flbuf); /* got 1 num on stack */
 	pushNums(flbuf, 1);
-	remaining = pop;
+	n = pop;
 	if (top != -1) {
 		printf("Error: expected an empty stack!\n");
 		exit(-1);
 	}
-	/* allocate memory for remaining */
-	struct Snowflake snowflakes[remaining];
-	n = remaining;
-	do 
-	{
+	/* Use n to eat the snowflakes */
+	for (i = 0; i < n; i++) {
+		snow = malloc(sizeof(struct SnowflakeNode));
+		if (snow == NULL) {
+			fprintf(stderr, "malloc error\n");
+			exit(1);
+		}
 		char* linebuf = malloc(sizeof(char) * MAXLEN);
 		linebuf = getLine(linebuf);
 		/* expect to read 6 ints from line */
 		pushNums(linebuf, N_ARMS);
 		/* initialize snowflake from nums on stack */
-		struct Snowflake sf;
-		sf  = initSnowflake(sf); /* pops numbers off the stack */
+		snow  = initSnowflakeNode(snow); /* pops numbers off the stack to make snowflake */
 		if (top != -1) {
 			printf("Error: expected an empty stack!\n");
 			printf("Failed to push %s\n", flbuf);
 			exit(-1);
 		}
-		/* store this snowflake in array */
-		snowflakes[remaining] = sf;
-	} while (--remaining > 0);
-	identify_identical(snowflakes, n);
-
-	/* Outer loop generates a permutation matrix */
-
-	/* Inner loop compares rows to control snowflake */
-
+		snowflake_code = code(snow->snowflake);
+		snow->next = snowflakes[snowflake_code];
+		snowflakes[snowflake_code] = snow;
+	}
+	identify_identical(snowflakes);
 	return 0;
 }
