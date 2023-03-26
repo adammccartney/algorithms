@@ -1,0 +1,25 @@
+#+begin_src dot :file ../img/tree_example.png
+   digraph example {
+
+    fontname="Helvetica,Arial,sans-serif"
+    node [fontname="Helvetica,Arial,sans-serif"]
+    edge [fontname="Helvetica,Arial,sans-serif"]
+
+
+       subgraph cluster01 {
+           n002;
+           n002 [label=""];
+           n002 -> n003;
+           n003 [label=""];
+           n002 -> n004;
+           n004 [label="8"]
+           n003 -> n005;
+           n005 [label="1"]
+           n006 [label="5"]
+           n003 -> n006;
+       }
+  }
+#+end_src
+
+#+RESULTS:
+[[file:../img/tree_example.png]]
