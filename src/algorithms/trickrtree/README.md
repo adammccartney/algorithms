@@ -26,7 +26,7 @@ either:
 
 For example, a tree represented by ( ( 1 5 ) 8 ) would look like:
 
-![tree example](../img/tree_example.png)
+![tree example](../../img/tree_example.png)
 
 The output will contain 5 lines of output, each a pair of integers R and
 C . R is the minimum number of roads needed to be traversed to get all
