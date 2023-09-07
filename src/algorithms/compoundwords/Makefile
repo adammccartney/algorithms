@@ -1,9 +1,12 @@
 CC := gcc
 CFLAGS := -Wall -g -O0
 
+.PHONY: clean all
+
+all: compoundwords
+
 compoundwords: compoundwords.c 
 	$(CC) $(CFLAGS) -o $@ $^
 
-.PHONY:
 clean:
 	rm compoundwords

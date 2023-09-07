@@ -3,9 +3,12 @@ CFLAGS := -Wall -g -O2
 
 EXE := descdist
 
+.PHONY: all clean 
+
+all: $(EXE)
+
 descdist: descdist.c 
 	$(CC) $(CFLAGS) -o $@ $<
 
-.PHONY:
 clean:
 	rm -rf $(EXE) 

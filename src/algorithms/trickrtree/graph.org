@@ -1,4 +1,4 @@
-#+begin_src dot :file ../img/tree_example.png
+#+begin_src dot :file ../../img/tree_example.png
    digraph example {
 
     fontname="Helvetica,Arial,sans-serif"
