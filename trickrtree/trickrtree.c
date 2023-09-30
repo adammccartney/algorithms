@@ -130,7 +130,7 @@ struct node* read_tree(char* line)
 
 
 /* IO to read/write 5 lines */
-char* getLine(char* line, int size)
+char* getLine(char* line, int size) 
 {
 	char buf[size]; // remember to copy whitespace!
 	if(!fgets(buf, size, stdin))
