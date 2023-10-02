@@ -1,9 +1,11 @@
 CC := gcc
-CFLAGS := -Wall -O1
+
+all: trickrtree
+CFLAGS := -Wall -O1 -g
 
 all: trickrtree
 
-trickrtree: trickrtree.c 
+trickrtree: trickrtree.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 .PHONY:
