@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-// utility functions
 int stackheight();
 int adrand(int l, int r);
 void printstack(void);
@@ -17,6 +16,8 @@ void swap(int* l, int* r);
 int choosePivot(int* A, int l, int r);
 int partition(int* A, int l, int r);
 void Quicksort(int* A, int l, int r);
+
+int getStackMedian();
 
 struct stack;
 struct stack* initStack(struct stack* s, int size);

@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS := -std=c99 -Wall -Werror -g -O0
+#CFLAGS := -std=c99 -Wextra -Werror -g -O0
+CFLAGS := -lm -lcrypt -O2 -pipe -ansi
 
 all: vito
 

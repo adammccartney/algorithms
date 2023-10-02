@@ -2,7 +2,7 @@
 
 #define MAXRELATIVES 500
 #define MAXSTREETNUM 30000
-#define SIZE 255
+#define SIZE 512
 
 int stack[SIZE];
 int top = -1;
@@ -25,31 +25,49 @@ struct stack* initStack(struct stack* s, int size) {
     return s;
 }
 
-// find the length of the stack
+/*  find the length of the stack */
 int stackheight() {
     int result = top + 1;
     return result;
 }
 
+void emptyStack() {
+    while (top > -1) {
+        pop;
+    }
+}
+
+/*  return the index of the median element */
+/*  If the stack has an odd number of elements, it returns exactly the middle */
+/*  element. If even, it returns a floor division. */
+int getStackMedian() {
+    int height = stackheight();
+    int result;
+    if (height % 2 == 0) {
+        result = height / 2;
+    } else {
+        result = (height / 2) + 1;
+    }
+    return stack[result - 1];
+}
+
 int main(int argc, char* argv[]) {
-    // first line gives number of lines to expect (test cases)
-    int nlines, numrel;
-//    int* pitem1;
+    /* first line gives number of lines to expect  */
+    int nlines, numrel, median, result;
     char* buf = getLine(SIZE);
-    nlines = atoi(buf); // num buffers to allocate
+    nlines = atoi(buf); /* num buffers to allocate */
     free(buf);
-    printf("nlines: %d\n", nlines);
-    for (int i = 0; i < nlines; i++) {
+    int i;
+    for (i = 0; i < nlines; i++) {
         buf = getLine(SIZE);
-        numrel = atoi(buf); // size of the array
-        pushNums(buf+1, numrel); // address of each relative
-        // now the stack contains the addresses
+        numrel = atoi(buf); /* size of the array */
+        pushNums(buf+1, numrel); /* address of each relative */
         Quicksort(stack,0,numrel-1);
-        while (top > -1) {
-            int j = pop;
-            printf("%d ", j);
-        }
-        printf("\n");
+        /* now the stack contains the addresses */
+        /* the median will tell us the optimal position for vito to live */
+        result = getStackMedian();
+        printf("%d\n", result);
+        emptyStack();
     }
     return 0;
 }
@@ -101,18 +119,18 @@ void pushNums(char* buf, int expect) {
 	 * There might be more numbers coming down the pipe.*/
 	char *endptr = buf;
 	do {
-		// convert our line to integers
-		errno = 0; // reset error number
+		/* convert our line to integers */
+		errno = 0; /* reset error number */
 		val = strtol(endptr, &endptr, 10);
 		if (errno == ERANGE) {
 			printf("Sorry, number too big or too small.");
 			success = 0;
 		} else if (endptr == buf) {
-			// no char read
+			/* no char read */
 			success = 0;
 		} else if (*endptr && *endptr != '\n') {
-			// *endptr is neither end of string or newline
-			// so we didn't get the whole input
+			/*  *endptr is neither end of string or newline
+			 * so we didn't get the whole input */
 			success = 0;
 			/* endptr is the address of the first invalid char */
 		} else {
@@ -123,7 +141,7 @@ void pushNums(char* buf, int expect) {
 	} while ((!success) && (count < expect));
 }
 
-// swap two integers in place using xor
+/*  swap two integers in place using xor */
 void swap(int* l, int* r) {
     if (*l == *r) {
         return;
@@ -134,13 +152,13 @@ void swap(int* l, int* r) {
 }
 
 
-// generate a random number between l and r
+/*  generate a random number between l and r */
 int adrand(int l, int r) {
     int res = (rand() % (r - l + 1)) + l;
     return res;
 }
 
-// choose a random pivot point in array A
+/*  choose a random pivot point in array A */
 int choosePivot(int* A, int l, int r) {
     if (l < 0 || r >= stackheight() || l > r) {
         return -1;
@@ -152,7 +170,8 @@ int choosePivot(int* A, int l, int r) {
 int partition(int* A, int l, int r) {
     int p = A[l];
     int i = l + 1;
-    for (int j = l + 1; j <= r; j++) {
+    int j;
+    for (j = l + 1; j <= r; j++) {
         if (A[j] < p) {
             swap(&A[j], &A[i]);
             i++;
@@ -163,11 +182,11 @@ int partition(int* A, int l, int r) {
 }
 
 void Quicksort(int* A, int l, int r) {
-    if (l >= r) { // 0- or 1-element subarray
+    if (l >= r) { /* 0- or 1-element subarray */
         return;
     }
     int i = choosePivot(A, l, r);
-    swap(&A[l], &A[i]); // make pivot first
+    swap(&A[l], &A[i]); /* make pivot first */
 
     int j = partition(A, l, r);
     Quicksort(A, l, j-1);
