@@ -2,5 +2,6 @@
 
 # Define breakpoints
 break main
+break Quicksort
 tui enable
-run < tests/1.in
+run < tests/3.in

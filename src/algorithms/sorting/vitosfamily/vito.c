@@ -1,74 +1,101 @@
 #include "vito.h"
 
-#define MAXRELATIVES 500
+#define MAXRELATIVES 512
 #define MAXSTREETNUM 30000
-#define SIZE 512
-
-int stack[SIZE];
-int top = -1;
-#define pop stack[top--];
-#define push(s) stack[++top]=s;
+#define SIZE 4096
 
 struct stack {
-    int *items;
-    int size;
     int top;
+    int size;
+    int *items;
 };
 
-struct stack* initStack(struct stack* s, int size) {
-    s->items = malloc(sizeof(int) * size);
-    if (s->items == NULL) {
+void initStack(struct stack* s, int size) {
+    s->top = -1;
+    s->size = size;
+    s->items = malloc(s->size * sizeof(*s->items));
+    if (!s->items) {
 		fprintf(stderr, "malloc error\n");
 		exit(1);
     }
-    s->top = -1;
-    return s;
 }
 
-/*  find the length of the stack */
-int stackheight() {
-    int result = top + 1;
-    return result;
-}
-
-void emptyStack() {
-    while (top > -1) {
-        pop;
+void resetStack(struct stack* s) {
+    while (s->top > -1) {
+        s->items[s->top--] = 0;
     }
+    s->size = 0;
+    free(s->items);
 }
 
-/*  return the index of the median element */
-/*  If the stack has an odd number of elements, it returns exactly the middle */
-/*  element. If even, it returns a floor division. */
-int getStackMedian() {
-    int height = stackheight();
+void freeStack(struct stack* s) {
+    free(s);
+}
+
+int popStack(struct stack* s) {
+    return s->items[s->top--];
+}
+
+void pushStack(struct stack* s, int elem) {
+    s->items[++s->top] = elem;
+}
+
+/* Find the median element. Note that the first element of items is a duplicate
+ * of the stack size struct member, so we don't want to count that. */
+int medianStack(struct stack* s) {
     int result;
-    if (height % 2 == 0) {
-        result = height / 2;
+    if (s->size % 2 == 0) {
+        result = s->size / 2;
     } else {
-        result = (height / 2) + 1;
+        result = (s->size / 2) + 1;
     }
-    return stack[result - 1];
+    return result-1; /* -1 accounts for zero indexing */
 }
+
+/* write a minimal sum of distances from the median to each other member */
+void printMinDistSum(struct stack* s) {
+    int median;
+    median = medianStack(s);
+    int dist = 0;
+    int i;
+    for (i = 0; i < median; i++) {
+        dist += abs(s->items[i] - s->items[median]);
+    }
+    for (i = median + 1; i < s->size; i++) {
+        dist += abs(s->items[i] - s->items[median]);
+    }
+    printf("%d\n", dist);
+}
+
+
 
 int main(int argc, char* argv[]) {
     /* first line gives number of lines to expect  */
-    int nlines, numrel, median, result;
-    char* buf = getLine(SIZE);
+    int nlines, numrel, median, result, dist;
+    char* buf;
+    buf = getLine(SIZE);
     nlines = atoi(buf); /* num buffers to allocate */
     free(buf);
+    struct stack* s = NULL;
+    s = malloc(sizeof *s);
+    if (!s) {
+        fprintf(stderr, "malloc failed for stack");
+        return 1;
+    }
     int i;
     for (i = 0; i < nlines; i++) {
         buf = getLine(SIZE);
         numrel = atoi(buf); /* size of the array */
-        pushNums(buf+1, numrel); /* address of each relative */
-        Quicksort(stack,0,numrel-1);
+        initStack(s, numrel);
+        pushNums(buf, s->size, s); /* address of each relative */
+        Quicksort(s,0,s->size-1);
         /* now the stack contains the addresses */
         /* the median will tell us the optimal position for vito to live */
-        result = getStackMedian();
-        printf("%d\n", result);
-        emptyStack();
+        printMinDistSum(s);
+        resetStack(s);
+        free(buf);
     }
+    freeStack(s);
     return 0;
 }
 
@@ -111,7 +138,7 @@ char* getLine(size_t size) {
 
 
 /* Read a line and push at most n (expected) numbers onto the stack */
-void pushNums(char* buf, int expect) {
+void pushNums(char* buf, int expect, struct stack* s) {
 	long val;
 	int success;
 	int count = 0;
@@ -136,9 +163,11 @@ void pushNums(char* buf, int expect) {
 		} else {
 			success = 1;
 		}
+        if (count > 0) { /* we don't want first number */
+            pushStack(s, val); /* Push the value onto the stack. */
+        }
 		count++;
-		push(val); /* Push the last value onto the stack. */
-	} while ((!success) && (count < expect));
+	} while ((!success) && (count <= expect));
 }
 
 /*  swap two integers in place using xor */
@@ -159,38 +188,36 @@ int adrand(int l, int r) {
 }
 
 /*  choose a random pivot point in array A */
-int choosePivot(int* A, int l, int r) {
-    if (l < 0 || r >= stackheight() || l > r) {
+int choosePivot(struct stack* s, int l, int r) {
+    if (l < 0 || r >= s->size || l > r) {
         return -1;
     }
     int rnum = adrand(l, r);
     return rnum;
 }
 
-int partition(int* A, int l, int r) {
-    int p = A[l];
+int partition(struct stack* s, int l, int r) {
+    int p = s->items[l];
     int i = l + 1;
     int j;
     for (j = l + 1; j <= r; j++) {
-        if (A[j] < p) {
-            swap(&A[j], &A[i]);
+        if (s->items[j] < p) {
+            swap(&s->items[j], &s->items[i]);
             i++;
         }
     }
-    swap(&A[l], &A[i-1]);
+    swap(&s->items[l], &s->items[i-1]);
     return i - 1;
 }
 
-void Quicksort(int* A, int l, int r) {
+void Quicksort(struct stack* s, int l, int r) {
     if (l >= r) { /* 0- or 1-element subarray */
         return;
     }
-    int i = choosePivot(A, l, r);
-    swap(&A[l], &A[i]); /* make pivot first */
+    int i = choosePivot(s, l, r);
+    swap(&s->items[l], &s->items[i]); /* make pivot first */
 
-    int j = partition(A, l, r);
-    Quicksort(A, l, j-1);
-    Quicksort(A, j+1, r);
+    int j = partition(s, l, r);
+    Quicksort(s, l, j-1);
+    Quicksort(s, j+1, r);
 }
-
-
