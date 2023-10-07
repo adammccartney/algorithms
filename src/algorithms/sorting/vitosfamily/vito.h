@@ -1,4 +1,6 @@
+#include <assert.h>
 #include <errno.h>
+#include <math.h>
 #include <memory.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -23,4 +25,8 @@ void printMinDistSum(struct stack* s);
 void Quicksort(struct stack* s, int l, int r);
 void swap(int* l, int* r);
 int choosePivot(struct stack* s, int l, int r);
-int partition(struct stack* s, int l, int r);
+
+int partition(struct stack* s, int l, int r, int p);
+
+int Rselect(struct stack* s, int l, int r, int k);
+void rMinDist(struct stack* s, int median, int statmed);

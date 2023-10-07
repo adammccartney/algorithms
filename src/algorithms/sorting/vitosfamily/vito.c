@@ -67,34 +67,47 @@ void printMinDistSum(struct stack* s) {
     printf("%d\n", dist);
 }
 
+void rMinDist(struct stack* s, int median, int statmed) {
+    int dist = 0;
+    int i;
+    for (i = 0; i < median; i++) {
+        dist += abs(s->items[i] - statmed);
+    }
+    for (i = median + 1; i < s->size; i++) {
+        dist += abs(s->items[i] - statmed);
+    }
+    printf("%d\n", dist);
+}
 
 
 int main(int argc, char* argv[]) {
     /* first line gives number of lines to expect  */
-    int nlines, numrel, median, result, dist;
-    char* buf;
-    buf = getLine(SIZE);
-    nlines = atoi(buf); /* num buffers to allocate */
-    free(buf);
+    int nlines, numrel;
+    char* line;
+    line = getLine(SIZE);
+    nlines = atoi(line); /* num buffers to allocate */
     struct stack* s = NULL;
     s = malloc(sizeof *s);
     if (!s) {
         fprintf(stderr, "malloc failed for stack");
         return 1;
     }
-    int i;
+    int i, k, kstat, l, r;
     for (i = 0; i < nlines; i++) {
+        char* buf;
         buf = getLine(SIZE);
         numrel = atoi(buf); /* size of the array */
         initStack(s, numrel);
         pushNums(buf, s->size, s); /* address of each relative */
-        Quicksort(s,0,s->size-1);
-        /* now the stack contains the addresses */
-        /* the median will tell us the optimal position for vito to live */
-        printMinDistSum(s);
+        k = medianStack(s);
+        l = 0;
+        r = s->size - 1;
+        kstat = Rselect(s, l, r, k);
+        rMinDist(s, k, kstat);
         resetStack(s);
         free(buf);
     }
+    free(line);
     freeStack(s);
     return 0;
 }
@@ -180,44 +193,37 @@ void swap(int* l, int* r) {
     *r = *r ^ *l;
 }
 
-
-/*  generate a random number between l and r */
-int adrand(int l, int r) {
-    int res = (rand() % (r - l + 1)) + l;
-    return res;
-}
-
-/*  choose a random pivot point in array A */
-int choosePivot(struct stack* s, int l, int r) {
-    if (l < 0 || r >= s->size || l > r) {
-        return -1;
-    }
-    int rnum = adrand(l, r);
-    return rnum;
-}
-
-int partition(struct stack* s, int l, int r) {
-    int p = s->items[l];
-    int i = l + 1;
-    int j;
-    for (j = l + 1; j <= r; j++) {
-        if (s->items[j] < p) {
-            swap(&s->items[j], &s->items[i]);
-            i++;
+int partition(struct stack* s, int l, int r, int p) {
+    int pval = s->items[p];
+    swap(&s->items[p], &s->items[r]);
+    int storeIndex = l;
+    int i;
+    for (i = l; i < r; i++) {
+        if (s->items[i] < pval) {
+            swap(&s->items[storeIndex], &s->items[i]);
+            storeIndex += 1;
         }
     }
-    swap(&s->items[l], &s->items[i-1]);
-    return i - 1;
+    swap(&s->items[r], &s->items[storeIndex]);
+    return storeIndex;
 }
 
-void Quicksort(struct stack* s, int l, int r) {
-    if (l >= r) { /* 0- or 1-element subarray */
-        return;
-    }
-    int i = choosePivot(s, l, r);
-    swap(&s->items[l], &s->items[i]); /* make pivot first */
 
-    int j = partition(s, l, r);
-    Quicksort(s, l, j-1);
-    Quicksort(s, j+1, r);
+/* rselect performs a linear time selection
+ * returns statistical i from array
+ * guarantees that i will be in correct position before being returned */
+int Rselect(struct stack* s, int l, int r, int k) {
+    int p, j;
+    if (l == r) { /* list only contains 1 item */
+        return s->items[l];
+    }
+    p = l + floor(rand() % (r - l + 1));
+    j = partition(s, l, r, p);
+    if (k == j) { /* got lucky */
+        return s->items[k];
+    } else if (k < j) {
+        return Rselect(s, l, j - 1, k);
+    } else {
+        return Rselect(s, l + 1, r, k);
+    }
 }
