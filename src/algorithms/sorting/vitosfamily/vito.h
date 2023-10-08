@@ -13,7 +13,10 @@ void printstack(void);
 char* getLine(size_t size);
 
 struct stack;
-void initStack(struct stack* s, int size);
+struct stack* append(struct stack* head, struct stack* tail);
+
+struct stack* initStack(struct stack* s, int size);
+
 void pushStack(struct stack* s, int item);
 int popStack(struct stack* s);
 void resetStack(struct stack* s);

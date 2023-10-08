@@ -5,19 +5,47 @@
 #define SIZE 4096
 
 struct stack {
+    struct stack* next;
     int top;
     int size;
-    int *items;
+    int* items;
 };
 
-void initStack(struct stack* s, int size) {
+struct stack* append (struct stack* head, struct stack* tail) {
+    tail->next = head;
+    head = tail;
+    return head;
+}
+
+struct stack* initStack(struct stack* s, int size) {
     s->top = -1;
     s->size = size;
-    s->items = malloc(s->size * sizeof(*s->items));
+    s->items = (int*) malloc(s->size * sizeof(*s->items));
     if (!s->items) {
 		fprintf(stderr, "malloc error\n");
 		exit(1);
     }
+    return s;
+}
+
+/* initialize a linked list of len stacks */
+struct stack* allocStackList(int len) {
+    struct stack* top = (struct stack*) malloc(sizeof(struct stack*));
+    top->next = NULL;
+    if (len == 1) {
+        return top;
+    }
+    int i;
+    for (i = 1; i < len; i++) {
+        struct stack* snew = (struct stack*) malloc(sizeof(struct stack*));
+        snew->next = NULL;
+        if (!snew) {
+            fprintf(stderr, "malloc failed for stack");
+            return NULL;
+        }
+        top = append(top, snew);
+    }
+    return top;
 }
 
 void resetStack(struct stack* s) {
@@ -28,8 +56,13 @@ void resetStack(struct stack* s) {
     free(s->items);
 }
 
-void freeStack(struct stack* s) {
-    free(s);
+void freeStackList(struct stack* start) {
+    struct stack* p;
+    struct stack* tmp;
+    for (p=start; p; p=tmp) {
+        tmp=p->next;
+        free(p);
+    }
 }
 
 int popStack(struct stack* s) {
@@ -37,7 +70,8 @@ int popStack(struct stack* s) {
 }
 
 void pushStack(struct stack* s, int elem) {
-    s->items[++s->top] = elem;
+    s->top += 1;
+    s->items[s->top] = elem;
 }
 
 /* Find the median element. Note that the first element of items is a duplicate
@@ -52,20 +86,6 @@ int medianStack(struct stack* s) {
     return result-1; /* -1 accounts for zero indexing */
 }
 
-/* write a minimal sum of distances from the median to each other member */
-void printMinDistSum(struct stack* s) {
-    int median;
-    median = medianStack(s);
-    int dist = 0;
-    int i;
-    for (i = 0; i < median; i++) {
-        dist += abs(s->items[i] - s->items[median]);
-    }
-    for (i = median + 1; i < s->size; i++) {
-        dist += abs(s->items[i] - s->items[median]);
-    }
-    printf("%d\n", dist);
-}
 
 void rMinDist(struct stack* s, int median, int statmed) {
     int dist = 0;
@@ -86,29 +106,26 @@ int main(int argc, char* argv[]) {
     char* line;
     line = getLine(SIZE);
     nlines = atoi(line); /* num buffers to allocate */
-    struct stack* s = NULL;
-    s = malloc(sizeof *s);
-    if (!s) {
-        fprintf(stderr, "malloc failed for stack");
-        return 1;
-    }
-    int i, k, kstat, l, r;
-    for (i = 0; i < nlines; i++) {
-        char* buf;
-        buf = getLine(SIZE);
-        numrel = atoi(buf); /* size of the array */
-        initStack(s, numrel);
-        pushNums(buf, s->size, s); /* address of each relative */
-        k = medianStack(s);
-        l = 0;
-        r = s->size - 1;
-        kstat = Rselect(s, l, r, k);
-        rMinDist(s, k, kstat);
-        resetStack(s);
-        free(buf);
-    }
     free(line);
-    freeStack(s);
+    int i, k, kstat, l, r;
+    /* initialize a list of stacks, one for each line of input */
+    struct stack* node = allocStackList(nlines);
+    struct stack* top = node;
+    while (node != NULL) {
+        char* buf = getLine(SIZE);
+        numrel = atoi(buf); /* size of the array */
+        node = initStack(node, numrel);
+        pushNums(buf, node->size, node); /* address of each relative */
+        free(buf);
+        k = medianStack(node);
+        l = 0;
+        r = node->size - 1;
+        kstat = Rselect(node, l, r, k);
+        rMinDist(node, k, kstat);
+        node = node->next;
+    }
+    /* free all the memory we allocated for the stack list */
+    freeStackList(top);
     return 0;
 }
 
