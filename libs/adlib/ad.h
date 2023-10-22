@@ -1,8 +1,10 @@
+#include <error.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct {
     int size;
-    int* head;
+    int top;
     int* tail;
     int* items;
 } queue;
@@ -10,4 +12,4 @@ typedef struct {
 queue* initQueue (int size);
 void freeQueue(queue* q);
 void enqueue (queue* q, int item);
-void dequeue (queue* q, int item);
+int dequeue (queue* q);
