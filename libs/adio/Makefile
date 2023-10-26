@@ -16,3 +16,7 @@ libadio.so: adio.c adio.h
 
 clean:
 	rm libadio.so
+
+distclean:
+	rm -f $(DESTDIR)$(PREFIX)/lib/libadio.so
+	rm -f $(DESTDIR)$(PREFIX)/include/adio.h
