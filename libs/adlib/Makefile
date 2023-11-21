@@ -14,3 +14,7 @@ libad.so: ad.c ad.h
 
 clean:
 	rm libad.so
+
+distclean:
+	rm -f $(DESTDIR)$(PREFIX)/lib/libadio.so
+	rm -f $(DESTDIR)$(PREFIX)/include/adio.h
