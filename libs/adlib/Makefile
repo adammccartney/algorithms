@@ -1,7 +1,7 @@
 .POSIX:
 .SUFFIXES:
 CC = gcc
-CFLAGS := -fPIC -shared -std=c99 -g -fPIC -Wall -Wextra -Werror -pedantic
+CFLAGS := -fPIC -shared -std=c99 -g -Wall -Wextra -Werror -pedantic
 PREFIX := /usr/local
 
 libad: libad.so

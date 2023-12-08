@@ -1,7 +1,7 @@
 #include "adio.h"
 
 /* Function to get a line of input from stdin */
-char* getLine(size_t size)
+char* ad_getline(size_t size)
 {
 	char* input = NULL;
 	char* buf;
@@ -23,12 +23,14 @@ char* getLine(size_t size)
 		if (newlen > 0 && buf[newlen-1] == '\n') {
 			buf[--newlen] = '\0'; /* remove the trailing newline if present */
 		}
-		if (newlen == size-1) { /* we're not finished */ 
+		if (newlen == size-1) { /* we're not finished */
 			size *= 2;   /* Double the size    */
 		} 		
-		input = realloc(input, size); 
+		input = realloc(input, size);
 		if (input == NULL) {
 			fprintf(stderr, "realloc error\n");
+            if (buf)
+                free(buf);
 			exit(1);
 		}
 		memcpy(input + len, buf, newlen+1); /* begin to write at byte 0, else */

@@ -37,7 +37,7 @@ node* new_node(char* name)
 }
 
 /* IO & parsing */
-char* getLine(char* line)
+char* ad_getline(char* line)
 {
 	int size = strlen(line) + 1;
 	char buf[size]; // remember to copy whitespace!

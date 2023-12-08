@@ -8,7 +8,7 @@
 int adrand(int l, int r);
 void printstack(void);
 
-char* getLine(size_t size);
+char* ad_getline(size_t size);
 
 struct stack;
 void initStack(struct stack* s, int size);

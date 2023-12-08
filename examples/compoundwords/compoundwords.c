@@ -75,7 +75,7 @@ void identify_compound_words(char* words[],
 
 
 /* Function to get a line of input */
-char* getLine(size_t size)
+char* ad_getline(size_t size)
 {
 	char* input = NULL;
 	char* buf;
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	char* word;
 	struct word_node* wordptr;
 	unsigned length, word_code;
-	word = getLine(WORDLEN);
+	word = ad_getline(WORDLEN);
 	while (*word) {
 		words[total] = word;
 		wordptr = malloc(sizeof(struct word_node));
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 		wordptr->word = &words[total];
 		wordptr->next = hash_table[word_code];
 		hash_table[word_code] = wordptr;
-		word = getLine(WORDLEN);
+		word = ad_getline(WORDLEN);
 		total++;
 	}
 	identify_compound_words(words, hash_table, total);

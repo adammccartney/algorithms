@@ -5,9 +5,12 @@
 #include <error.h>
 #include <stdio.h>
 #include "bicoloring.h"
+#include  "adio.h"
 
 #define MAXLINE 255
 #define TESTCASES 512
+#define MAXNODE_INT_SIZE 8
+#define MAXEDGE_INT_SIZE 16
 
 test_case ERR_TC_UNDERFLOW = {1, 1};
 
@@ -52,47 +55,51 @@ test_case dequeue(queue* q) {
     return result;
 }
 
-static void write_line(char itype, char* line) {
+static void write_line(char itype, uint16_t v) {
     if ('n' == itype) {  /* read nodes */
-        printf("nodes %d\n", atoi(line));
+        printf("nodes %d\n", v);
     }
     if ('e' == itype) {  /* read edges */
-        printf("edges %d\n", atoi(line));
+        printf("edges %d\n", v);
     }
 };
 
-static void getedges(uint16_t l) {
-    char* line;
-    size_t len = 0;
-    ssize_t nread;
-    for (int i = 0; i < l; i++) {
-        printf("Getting edge %d\n", i);
-        nread = getline(&line, &len, stdin);
-        if (nread == -1) {
-            fprintf(stderr, "Error reading edges\n");
-            return;
+static void getedges(uint16_t e, uint32_t l_count) {
+    printf("Processing line: %d\n", l_count);
+    printf("got %d edges\n", e);
+}
+
+static void ad_copynums(uint32_t *nums, char* line) {
+    /* get N contiguos char bytes from a line buffer and convert them to numbers
+     * store them into the nums array. Each number is delimited by a whitespace. */
+    char nbuf[MAXNODE_INT_SIZE] = {'\0'};
+    char* rp = line;
+    size_t idx = 0; /* index for numbuffer */
+    size_t n_idx = 0;  /* index for storing numbers */
+    for (; *rp != '\0'; rp++) {
+        if ((*rp >= '0') && (*rp <= '9')) {
+            nbuf[idx] = *rp;
         }
-        printf("line[0]: %c\n", line[0]);
-        uint8_t lhs = line[0];
-        uint8_t rhs = line[1];
-        printf("lhs: %d\n", lhs);
-        printf("rhs: %d\n", rhs);
+        idx++;
+        char* peek = rp+1;
+        if (' ' == *rp || '\0' == *peek) {  /* found the end of char block containing number */
+            nums[n_idx] = (uint32_t)atoi(nbuf); /* convert the numbers we've read */
+            n_idx++;  /* increment index of chars copied */
+            nbuf[0] = '\0';  /* reset the char buffer */
+            idx = 0; /* reset numbuf index */
+            continue;
+        }
     }
 }
 
 int main(int argc, char* argv[]) {
 
-    FILE *stream;
     char *line = NULL;
     size_t len = 0;
-    ssize_t nread;
-    uint8_t iline = 0; /* input line */
     if (argc != 1) {
             fprintf(stderr, "Usage: %s \n", argv[0]);
             exit(EXIT_FAILURE);
     }
-
-    stream = fopen("/dev/stdin", "r");
 
     queue *tcases = initQueue(TESTCASES);
 
@@ -101,35 +108,38 @@ int main(int argc, char* argv[]) {
      * second line: number of edges l
      * then follow l lines
      * */
-    while ((nread = getline(&line, &len, stream) != -1)) {
-        /* nodes */
-        /*fwrite(line, nread, 1, stdout);*/
-        switch(iline){
-            case 0:
-                write_line('n', line);
-                uint8_t nodes = (uint8_t)atoi(line);
-                printf("nodes: %d\n", nodes);
-                iline += 1;
-                break;
-            case 1:
-                write_line('e', line);
-                uint16_t edges = atoi(line);
-                printf("edges: %d\n", edges);
-                iline += 1;
-                break;
-            case 2:
-                /*test_case tc = {nodes, edges};*/
-                getedges(edges);
-                iline = 0;
-                break;
-            default:
-                printf("iline: %d\n", iline);
-                continue;
+    uint16_t nodes;
+    uint16_t edges;
+
+    Boolean finished = FALSE;
+
+    while (!finished) {
+        /* get nodes */
+        len = MAXNODE_INT_SIZE;
+        line = ad_getline(len);
+        nodes = (uint32_t)atoi(line);
+        if (0 == nodes) {  /* last line, means we're done */
+            finished = TRUE;
+            break;
+        }
+        printf("nodes: %d\n", nodes);
+
+        /* get edges */
+        len = MAXEDGE_INT_SIZE;
+        line = ad_getline(len);
+        edges = (uint32_t)atoi(line);
+        printf("edges: %d\n", edges);
+
+        int i;
+        const uint8_t e = 2; /* N1->N2 (edge between two nodes per line) */
+        for (i = 0; i < edges; i++) {
+            line = ad_getline(len);
+            uint32_t nums[e];
+            ad_copynums(nums, line);
+            printf("%d->%d\n", nums[0], nums[1]);
         }
     }
-
     freeQueue(tcases);
     free(line);
-    fclose(stream);
     exit(EXIT_SUCCESS);
 };

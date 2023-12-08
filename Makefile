@@ -5,6 +5,7 @@ SUBDIRS += examples/foodlines
 SUBDIRS += examples/snowflakes
 SUBDIRS += examples/sorting
 SUBDIRS += examples/trickrtree
+SUBDIRS += examples/bicoloring
 
 .PHONY: clean all libs
 

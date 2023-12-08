@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     /* first line gives number of lines to expect  */
     int nlines, numrel, median, result, dist;
     char* buf;
-    buf = getLine(SIZE);
+    buf = ad_getline(SIZE);
     nlines = atoi(buf); /* num buffers to allocate */
     free(buf);
     struct stack* s = NULL;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     }
     int i;
     for (i = 0; i < nlines; i++) {
-        buf = getLine(SIZE);
+        buf = ad_getline(SIZE);
         numrel = atoi(buf); /* size of the array */
         initStack(s, numrel);
         pushNums(buf, s->size, s); /* address of each relative */
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 }
 
 /* Function to get a line of input */
-char* getLine(size_t size) {
+char* ad_getline(size_t size) {
 	char* input = NULL;
 	char* buf;
 	buf = malloc(size);  /* allocate the min number of bytes */

@@ -2,8 +2,8 @@
 .SUFFIXES:
 CC = gcc
 CFLAGS := -std=c99 -Wall -Werror -Wextra -Werror -Wno-unused-function -O0 -g
-LDFLAGS :=
-LDLIBS :=
+LDFLAGS := -L${HOME}/.local/lib
+LDLIBS := -ladio
 PREFIX := /usr/local
 
 EXE := bicoloring

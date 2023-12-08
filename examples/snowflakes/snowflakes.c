@@ -139,7 +139,7 @@ void identify_identical(struct SnowflakeNode* snowflakes[])
 }
 
 
-char* getLine(char* line)
+char* ad_getline(char* line)
 {
 	char buf[MAXLEN]; // remember to copy whitespace!
 	if(!fgets(buf, MAXLEN, stdin))
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 
 	/* Get n, the number of snowflakes to eat */
 	char* flbuf = malloc(sizeof(char) * MAXLEN);
-	flbuf = getLine(flbuf); /* got 1 num on stack */
+	flbuf = ad_getline(flbuf); /* got 1 num on stack */
 	pushNums(flbuf, 1);
 	n = pop;
 	if (top != -1) {
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 			exit(1);
 		}
 		char* linebuf = malloc(sizeof(char) * MAXLEN);
-		linebuf = getLine(linebuf);
+		linebuf = ad_getline(linebuf);
 		/* expect to read 6 ints from line */
 		pushNums(linebuf, N_ARMS);
 		/* initialize snowflake from nums on stack */
