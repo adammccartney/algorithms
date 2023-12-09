@@ -1,73 +1,6 @@
-
-#define _GNU_SOURCE
-#include <stdlib.h>
-#include <unistd.h>
-#include <error.h>
-#include <stdio.h>
 #include "bicoloring.h"
-#include  "adio.h"
-
 #define MAXLINE 255
 #define TESTCASES 512
-#define MAXNODE_INT_SIZE 8
-#define MAXEDGE_INT_SIZE 16
-
-test_case ERR_TC_UNDERFLOW = {1, 1};
-
-/* Queue */
-
-queue* initQueue (int size) {
-    queue* q = (queue*) malloc(sizeof(queue) + sizeof(test_case) * size);
-    if (!q) {
-        fprintf(stderr, "malloc error: failed for queue\n");
-        exit(1);
-    }
-    q->size = size;
-    q->top = -1;
-    q->items = (test_case*) malloc(sizeof(test_case) * size);
-    if (!q->items) {
-        printf("malloc error: failed for q->items\n");
-        exit(1);
-    }
-    return q;
-}
-
-void freeQueue(queue* q) {
-    free(q);
-}
-
-void enqueue(queue* q, test_case item) {
-    if (q->top >= q->size) { /* Overflow */
-        fprintf(stderr, "error: overflow while attempting enqueue\n");
-        return;
-    }
-    q->top++;
-    q->items[q->top] = item;
-}
-
-test_case dequeue(queue* q) {
-    if (q->top <= -1) { /* Underflow */
-        fprintf(stderr, "error: underfow while attempting dequeue\n");
-        return ERR_TC_UNDERFLOW;
-    }
-    test_case result = q->items[q->top];
-    q->top--;
-    return result;
-}
-
-static void write_line(char itype, uint16_t v) {
-    if ('n' == itype) {  /* read nodes */
-        printf("nodes %d\n", v);
-    }
-    if ('e' == itype) {  /* read edges */
-        printf("edges %d\n", v);
-    }
-};
-
-static void getedges(uint16_t e, uint32_t l_count) {
-    printf("Processing line: %d\n", l_count);
-    printf("got %d edges\n", e);
-}
 
 static void ad_copynums(uint32_t *nums, char* line) {
     /* get N contiguos char bytes from a line buffer and convert them to numbers
@@ -101,8 +34,6 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
     }
 
-    queue *tcases = initQueue(TESTCASES);
-
     /* read structured input:
      * first line: number of nodes
      * second line: number of edges l
@@ -130,16 +61,16 @@ int main(int argc, char* argv[]) {
         edges = (uint32_t)atoi(line);
         printf("edges: %d\n", edges);
 
-        int i;
-        const uint8_t e = 2; /* N1->N2 (edge between two nodes per line) */
-        for (i = 0; i < edges; i++) {
-            line = ad_getline(len);
-            uint32_t nums[e];
-            ad_copynums(nums, line);
-            printf("%d->%d\n", nums[0], nums[1]);
+        graph* g = NULL;
+        g = (graph*)malloc(sizeof(graph));
+        if (!g) {
+            fprintf(stderr, "malloc error: graph\n");
+            exit(EXIT_FAILURE);
         }
+        read_graph(g, FALSE, nodes, edges, line, len);
+        print_graph(g);
+
     }
-    freeQueue(tcases);
     free(line);
     exit(EXIT_SUCCESS);
 };
