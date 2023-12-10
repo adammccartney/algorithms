@@ -1,4 +1,5 @@
 b main
-b 85
+b twocolor
+b bfs
 tui enable
-run < tests/1.in
+run < tests/2.in

@@ -3,15 +3,16 @@
 #include "common.h"
 
 typedef struct {
+    int32_t front;
+    int32_t back;
     int32_t size;
-    int32_t top;
-    uint32_t *tail;
-    uint32_t *items;
+    int32_t capacity;
+    uint32_t* items;
 } queue;
 
-void init_queue (queue* q, size_t size);
+queue* init_queue(uint32_t capacity);
 void free_queue(queue* q);
-void enqueue (queue* q, uint32_t start);
+void enqueue (queue* q, uint32_t item);
 uint32_t dequeue (queue* q);
 Boolean empty_queue(queue* q);
 

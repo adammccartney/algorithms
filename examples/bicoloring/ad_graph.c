@@ -8,8 +8,17 @@ void initialize_graph(graph *g, Boolean directed) {
     g->nedges = 0;
     g->directed = directed;
 
-    for (i=1; i<=MAXV; i++) g->degree[i] = 0;
-    for (i=1; i<=MAXV; i++) g->edges[i] = NULL;
+    for (i=0; i<MAXV; i++) g->degree[i] = 0;
+    for (i=0; i<MAXV; i++) g->edges[i] = NULL;
+}
+
+void free_graph(graph* g) {
+    int i = 0;
+    while(g->edges[i] != NULL && i < MAXV) {
+        free(g->edges[i]);
+        i++;
+    }
+    free(g);
 }
 
 
@@ -46,10 +55,10 @@ void read_graph(graph *g, Boolean directed, uint32_t nodes, uint32_t nedges, cha
     uint32_t i;
     const uint8_t e = 2; /* N1->N2 (edge between two nodes per line) */
     for (i = 0; i < nedges; i++) {
-        line = ad_getline(len);
+        ad_getline_min(line, len);
         uint32_t nums[e];
         ad_copynums(nums, line);
-        printf("%d->%d\n", nums[0], nums[1]);
+        //printf("%d->%d\n", nums[0], nums[1]);
         x = nums[0];
         y = nums[1];
         insert_edge(g,x,y,directed);
@@ -59,7 +68,7 @@ void read_graph(graph *g, Boolean directed, uint32_t nodes, uint32_t nedges, cha
 void insert_edge(graph *g, uint32_t x, uint32_t y, Boolean directed) {
     edgenode *p;                               /* temporary pointer */
 
-    p = (edgenode*)malloc(sizeof(edgenode));   /* allocate edgenode */
+    p = (edgenode*)malloc(sizeof(edgenode));   /* allocate storage for edgenode */
 
     if (!p) {
         fprintf(stderr, "malloc error: edgenode\n");
@@ -99,6 +108,8 @@ void print_graph(graph *g) {
 Boolean processed[MAXV+1];
 Boolean discovered[MAXV+1];   /* found */
 uint32_t parent[MAXV+1];      /* discovery relation */
+Boolean bipartite;
+static uint32_t color[MAXV];
 
 void initialize_search(graph* g) {
     uint32_t i;
@@ -108,28 +119,63 @@ void initialize_search(graph* g) {
     }
 }
 
+/*
 static void process_vertex_early(uint32_t v) {
     printf("processed vertex %d\n", v);
 }
+*/
 
-static void process_edge(uint32_t x, uint32_t y) {
-    printf("processed edge (%d,%d)\n",x,y);
+
+void twocolor(graph* g) {
+    uint32_t i;
+
+    for (i = 0; i < (g->nvertices); i++) {
+        color[i] = UNCOLORED;
+
+        bipartite = TRUE;
+
+        initialize_search(g);
+
+        for (i = 0; i < (g->nvertices); i++) {
+            if (discovered[i] == FALSE) {
+                color[i] = WHITE;
+                bfs(g,i);
+            }
+        }
+    }
+    if (bipartite == TRUE) {
+        printf("BICOLORABLE.\n");
+    }
 }
 
+void process_edge(uint32_t x, uint32_t y) {
+    if (color[x] == color[y]) {
+        bipartite = FALSE;
+        printf("NOT BICOLORABLE.\n");
+    }
+    color[y] = complement(color[x]);
+}
+
+uint32_t complement(uint32_t color) {
+    if (color == WHITE) return(BLACK);
+    if (color == BLACK) return(WHITE);
+
+    return(UNCOLORED);
+}
 
 void bfs(graph* g, int start) {
-    queue q;              /* queue of nodes to visit */
+    queue* q = NULL;              /* queue of nodes to visit */
     uint32_t v;           /* current vertex (node) */
     uint32_t y;           /* successor to visit */
     edgenode *p;          /* temporary pointer */
 
-    init_queue(&q, g->nvertices);
-    enqueue(&q,start);
+    q = init_queue(g->nvertices);
+    enqueue(q,start);
     discovered[start] = TRUE;
 
-    while (empty_queue(&q) == FALSE) {
-        v = dequeue(&q);
-        process_vertex_early(v);
+    while (empty_queue(q) == FALSE) {
+        v = dequeue(q);
+        //process_vertex_early(v);
         processed[v] = TRUE;
         p = g->edges[v];
         while (p != NULL) {
@@ -137,7 +183,7 @@ void bfs(graph* g, int start) {
             if ((processed[y] == FALSE) || g->directed)
                 process_edge(v,y);
             if (discovered[y] == FALSE) {
-                enqueue(&q,y);
+                enqueue(q,y);
                 discovered[y] = TRUE;
                 parent[y] = TRUE;
                 parent[y] = v;
@@ -145,6 +191,7 @@ void bfs(graph* g, int start) {
             p = p->next;
         }
     }
+    free_queue(q);
 }
 
 
